@@ -91,7 +91,7 @@ class BodyMassIndex:
                 value = float(f"{self.weightKg / (self.heightM ** 2):.1}")
                 logger.info("BMI value is calculated. ")
                 return value
-            except ZeroDivisionError as z:
+            except ZeroDivisionError:
                 logger.error("height should not zero. ", exc_info=True)
 
     @staticmethod
