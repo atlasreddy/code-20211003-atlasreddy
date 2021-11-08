@@ -59,6 +59,7 @@ class BodyMassIndex:
         self.gender = kwargs.get('Gender', None)
         self.heightCm = kwargs.get('HeightCm', None)
         self.weightKg = kwargs.get('WeightKg', None)
+        self.avgHeight = kwargs.get('avgHeight', 0)
 
         if not (isvalid_gender(self.gender) or
                 isvalid_height(self.heightCm) or
@@ -90,6 +91,10 @@ class BodyMassIndex:
             try:
                 value = float(f"{self.weightKg / (self.heightM ** 2):.1}")
                 logger.info("BMI value is calculated. ")
+                if self.heightCm < self.avgHeight:
+                    value = 0.9 * value
+                elif self.heightCm > self.avgHeight:
+                    value = 1.1 * value
                 return value
             except ZeroDivisionError:
                 logger.error("height should not zero. ", exc_info=True)
@@ -156,11 +161,19 @@ class BodyMassIndexSetUp:
         self.data = load_data(data_file)
         logger.debug(self.data)
         self.over_weight_count = 0
+        self.avg_height = self.get_mean_height()
+
+    def get_mean_height(self):
+        height_sum = 0
+        for d in self.data:
+            height_sum += d.get('HeightCm', 0)
+        mean_height = height_sum / len(self.data)
+        return mean_height
 
     def execute(self):
         for data in self.data:
             try:
-                bmi = BodyMassIndex(**data)
+                bmi = BodyMassIndex(**data, avg_height=self.avg_height)
                 bmi.set_bmi_category_risks()
                 # print(bmi.serialize())
                 logger.info(bmi.serialize())
